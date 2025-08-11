@@ -85,15 +85,6 @@ networks:
     name: fandoms-net
 ```
 
----
-
-## 🗄️ Estado actual
-- Conexión a PostgreSQL funcionando.
-- CRUD básico `User` implementado y accesible vía HTTP.
-- Preparado para agregar nuevas entidades según el modelo de la aplicación.
-
----
-
 ## 📜 Scripts útiles
 ```bash
 npm run start:dev      # Levanta servidor en modo desarrollo

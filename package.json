@@ -1,8 +1,8 @@
 {
   "name": "fandoms-backend",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "Backend de Fandoms App",
+  "author": "Ana Inés Barraza",
   "private": true,
   "license": "MIT",
   "scripts": {
