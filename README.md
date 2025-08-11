@@ -1,98 +1,106 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Fandoms App — Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Backend del proyecto **Fandoms App**, desarrollado con [NestJS](https://nestjs.com/) y [Prisma](https://www.prisma.io/), conectado a una base de datos **PostgreSQL** que corre dentro de un contenedor Docker.  
+Actualmente implementa un CRUD de prueba para la entidad `User` para verificar la conexión y el funcionamiento de la API.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+---
 
-## Description
+## 🚀 Quick Start
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
+1. **Instalar dependencias**
 ```bash
-$ npm install
+npm install
 ```
 
-## Compile and run the project
-
+2. **Levantar base de datos (Docker)**
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+cd db
+docker compose up -d
+cd ..
 ```
 
-## Run tests
-
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+3. **Configurar variables de entorno**  
+Crear un archivo `.env` en la raíz del proyecto con el siguiente contenido (o adaptar según sea necesario):
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fandomsdb?schema=public"
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
+4. **Aplicar migraciones y generar cliente Prisma**
 ```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+npm run prisma:migrate
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+5. **Levantar servidor en modo desarrollo**
+```bash
+npm run start:dev
+```
 
-## Resources
+La API quedará disponible en:  
+`http://localhost:3000`
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## ⚙️ Requisitos
+- Node.js **v16+**
+- npm **v8+**
+- Docker y Docker Compose (si se utiliza contenedor para la base de datos)
 
-## Support
+---
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+## 🐘 Configuración de la base de datos (Docker)
 
-## Stay in touch
+**`db/.env`**
+```env
+image=postgres:16
+postgres_port=5432
+POSTGRES_DB=fandomsdb
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+TZ=America/Argentina/Buenos_Aires
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**`db/docker-compose.yml`**
+```yaml
+services:
+  db:
+    image: ${image}
+    container_name: fandomsDB
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${TZ}
+    ports:
+      - "${postgres_port}:5432"
+    volumes:
+      - .data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-## License
+networks:
+  default:
+    name: fandoms-net
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+---
+
+## 🗄️ Estado actual
+- Conexión a PostgreSQL funcionando.
+- CRUD básico `User` implementado y accesible vía HTTP.
+- Preparado para agregar nuevas entidades según el modelo de la aplicación.
+
+---
+
+## 📜 Scripts útiles
+```bash
+npm run start:dev      # Levanta servidor en modo desarrollo
+npm run build          # Compila el proyecto
+npm run lint           # Linter con ESLint
+npm run format         # Formatea código con Prettier
+npm run prisma:generate  # Regenera cliente Prisma
+npm run prisma:migrate   # Ejecuta migraciones
+npm run prisma:studio    # Abre Prisma Studio
+```
