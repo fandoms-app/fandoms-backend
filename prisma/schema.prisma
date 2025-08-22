@@ -1,12 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -14,8 +7,168 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id    Int    @id @default(autoincrement())
-  name  String
-  email String @unique
+enum RolGlobal {
+  admin
+  moderador
+  usuario
+}
+
+enum TipoReporte {
+  usuario
+  canal
+  publicacion
+}
+
+enum EstadoSolicitud {
+  pendiente
+  aprobada
+  rechazada
+}
+
+model Usuario {
+  id              String          @id @default(uuid())
+  nombreUsuario   String          @unique @map("nombre_usuario")
+  email           String          @unique
+  passwordHash    String          @map("password_hash")
+  avatar          String?
+  bio             String?
+  fechaNacimiento DateTime        @map("fecha_nacimiento")
+  fechaCreacion   DateTime        @default(now()) @map("fecha_creacion")
+  rol             RolGlobal       @default(usuario)
+
+  publicaciones   Publicacion[]
+  reacciones      Reaccion[]
+  seguidores      SeguimientoUsuario[] @relation("Seguidores")
+  seguidos        SeguimientoUsuario[] @relation("Seguidos")
+  seguimientoCanales SeguimientoCanal[]
+  gruposRoles     UsuarioGrupoRol[]
+  reportesHechos  Reporte[]        @relation("ReportesHechos")
+  solicitudesCanal SolicitudCanal[]
+}
+
+model Canal {
+  id            String        @id @default(uuid())
+  nombreCanal   String        @map("nombre_canal")
+  descripcion   String?
+  fechaCreacion DateTime      @default(now()) @map("fecha_creacion")
+  idCanalPadre  String?       @map("id_canal_padre")
+
+  canalPadre    Canal?        @relation("SubCanales", fields: [idCanalPadre], references: [id])
+  subCanales    Canal[]       @relation("SubCanales")
+
+  publicaciones Publicacion[]
+  gruposRoles   GrupoRol[]
+  seguidores    SeguimientoCanal[]
+  solicitudesHijas SolicitudCanal[] @relation("SolicitudesHijas")
+}
+
+model SolicitudCanal {
+  id             String           @id @default(uuid())
+  idUsuario      String           @map("id_usuario")
+  idCanalPadre   String?          @map("id_canal_padre")
+  nombre         String
+  descripcion    String?
+  estado         EstadoSolicitud  @default(pendiente)
+  fechaSolicitud DateTime         @default(now()) @map("fecha_solicitud")
+
+  usuario        Usuario          @relation(fields: [idUsuario], references: [id])
+  canalPadre     Canal?           @relation("SolicitudesHijas", fields: [idCanalPadre], references: [id])
+}
+
+model Publicacion {
+  id                  String         @id @default(uuid())
+  titulo              String?
+  contenido           String
+  fechaCreacion       DateTime       @default(now()) @map("fecha_creacion")
+  idUsuario           String         @map("id_usuario")
+  idCanal             String         @map("id_canal")
+  idPublicacionPadre  String?        @map("id_publicacion_padre")
+
+  usuario             Usuario        @relation(fields: [idUsuario], references: [id])
+  canal               Canal          @relation(fields: [idCanal], references: [id])
+  publicacionPadre    Publicacion?   @relation("Comentarios", fields: [idPublicacionPadre], references: [id])
+  comentarios         Publicacion[]  @relation("Comentarios")
+  reacciones          Reaccion[]
+}
+
+model Reaccion {
+  idUsuario     String     @map("id_usuario")
+  idPublicacion String     @map("id_publicacion")
+  fechaCreacion DateTime   @default(now()) @map("fecha_creacion")
+
+  usuario       Usuario    @relation(fields: [idUsuario], references: [id])
+  publicacion   Publicacion @relation(fields: [idPublicacion], references: [id])
+
+  @@id([idUsuario, idPublicacion])
+}
+
+model SeguimientoUsuario {
+  idSeguidor String   @map("id_seguidor")
+  idSeguido  String   @map("id_seguido")
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  seguidor   Usuario  @relation("Seguidores", fields: [idSeguidor], references: [id])
+  seguido    Usuario  @relation("Seguidos", fields: [idSeguido], references: [id])
+
+  @@id([idSeguidor, idSeguido])
+}
+
+model SeguimientoCanal {
+  idUsuario   String   @map("id_usuario")
+  idCanal     String   @map("id_canal")
+  fechaCreacion DateTime @default(now()) @map("fecha_creacion")
+
+  usuario     Usuario  @relation(fields: [idUsuario], references: [id])
+  canal       Canal    @relation(fields: [idCanal], references: [id])
+
+  @@id([idUsuario, idCanal])
+}
+
+model GrupoRol {
+  id          String       @id @default(uuid())
+  nombreRol   String       @map("nombre_rol")
+  color       String?
+  idCanal     String       @map("id_canal")
+
+  canal       Canal        @relation(fields: [idCanal], references: [id])
+  permisos    PermisoGrupoRol[]
+  usuarios    UsuarioGrupoRol[]
+}
+
+model Permiso {
+  id           String            @id @default(uuid())
+  nombrePermiso String           @map("nombre_permiso")
+  descripcion   String?
+  gruposRol     PermisoGrupoRol[]
+}
+
+model PermisoGrupoRol {
+  idGrupoRol  String   @map("id_grupo_rol")
+  idPermiso   String   @map("id_permiso")
+
+  grupoRol    GrupoRol @relation(fields: [idGrupoRol], references: [id])
+  permiso     Permiso  @relation(fields: [idPermiso], references: [id])
+
+  @@id([idGrupoRol, idPermiso])
+}
+
+model UsuarioGrupoRol {
+  idUsuario  String   @map("id_usuario")
+  idGrupoRol String   @map("id_grupo_rol")
+
+  usuario    Usuario  @relation(fields: [idUsuario], references: [id])
+  grupoRol   GrupoRol @relation(fields: [idGrupoRol], references: [id])
+
+  @@id([idUsuario, idGrupoRol])
+}
+
+model Reporte {
+  id               String         @id @default(uuid())
+  tipo             TipoReporte
+  motivo           String
+  fechaCreacion    DateTime       @default(now()) @map("fecha_creacion")
+  idUsuarioReporta String         @map("id_usuario_reporta")
+  idObjetivo       String         @map("id_objetivo")
+
+  usuarioReporta   Usuario        @relation("ReportesHechos", fields: [idUsuarioReporta], references: [id])
 }
