@@ -2,6 +2,8 @@ import { Controller, Get, Body, Patch, Param, Delete, UseGuards } from '@nestjs/
 import { UsuarioService } from './usuario.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { User } from 'src/auth/decorators/user-decorator';
+import type { JwtPayload } from 'src/auth/types/jwt-payload';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -11,6 +13,12 @@ export class UsuarioController {
     @Get()
     findAll() {
         return this.usuarioService.findAll();
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Get('me')
+    async getMe(@User() user: JwtPayload) {
+        return this.usuarioService.findOne(user.sub);
     }
 
     @UseGuards(JwtAuthGuard)

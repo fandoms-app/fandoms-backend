@@ -5,12 +5,7 @@ import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
 import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
-
-interface JwtPayload {
-    sub: string;
-    email: string;
-    rol: string;
-}
+import { JwtPayload } from './types/jwt-payload';
 
 @Injectable()
 export class AuthService {
