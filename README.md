@@ -1,7 +1,6 @@
 # Fandoms App — Backend
 
-Backend del proyecto **Fandoms App**, desarrollado con [NestJS](https://nestjs.com/) y [Prisma](https://www.prisma.io/), conectado a una base de datos **PostgreSQL** que corre dentro de un contenedor Docker.  
-Actualmente implementa un CRUD de prueba para la entidad `User` para verificar la conexión y el funcionamiento de la API.
+Backend del proyecto **Fandoms App**, desarrollado con [NestJS](https://nestjs.com/) y [Prisma](https://www.prisma.io/), conectado a una base de datos **PostgreSQL** que corre dentro de un contenedor Docker.
 
 ---
 
