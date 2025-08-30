@@ -8,11 +8,13 @@ Actualmente implementa un CRUD de prueba para la entidad `User` para verificar l
 ## 🚀 Quick Start
 
 1. **Instalar dependencias**
+
 ```bash
 npm install
 ```
 
 2. **Levantar base de datos (Docker)**
+
 ```bash
 cd db
 docker compose up -d
@@ -20,17 +22,20 @@ cd ..
 ```
 
 3. **Configurar variables de entorno**  
-Crear un archivo `.env` en la raíz del proyecto con el siguiente contenido (o adaptar según sea necesario):
+   Crear un archivo `.env` en la raíz del proyecto con el siguiente contenido (o adaptar según sea necesario):
+
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/fandomsdb?schema=public"
 ```
 
 4. **Aplicar migraciones y generar cliente Prisma**
+
 ```bash
 npm run prisma:migrate
 ```
 
 5. **Levantar servidor en modo desarrollo**
+
 ```bash
 npm run start:dev
 ```
@@ -41,6 +46,7 @@ La API quedará disponible en:
 ---
 
 ## ⚙️ Requisitos
+
 - Node.js **v16+**
 - npm **v8+**
 - Docker y Docker Compose (si se utiliza contenedor para la base de datos)
@@ -50,6 +56,7 @@ La API quedará disponible en:
 ## 🐘 Configuración de la base de datos (Docker)
 
 **`db/.env`**
+
 ```env
 image=postgres:16
 postgres_port=5432
@@ -60,32 +67,34 @@ TZ=America/Argentina/Buenos_Aires
 ```
 
 **`db/docker-compose.yml`**
+
 ```yaml
 services:
-  db:
-    image: ${image}
-    container_name: fandomsDB
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - TZ=${TZ}
-    ports:
-      - "${postgres_port}:5432"
-    volumes:
-      - .data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    db:
+        image: ${image}
+        container_name: fandomsDB
+        environment:
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+            - TZ=${TZ}
+        ports:
+            - '${postgres_port}:5432'
+        volumes:
+            - .data:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
 networks:
-  default:
-    name: fandoms-net
+    default:
+        name: fandoms-net
 ```
 
 ## 📜 Scripts útiles
+
 ```bash
 npm run start:dev      # Levanta servidor en modo desarrollo
 npm run build          # Compila el proyecto

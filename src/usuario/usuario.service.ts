@@ -84,4 +84,60 @@ export class UsuarioService {
         await this.findOne(id);
         await this.prisma.usuario.delete({ where: { id } });
     }
+
+    async follow(followerId: string, targetId: string) {
+        if (followerId === targetId) {
+            throw new ConflictException('No podés seguirte a vos mismo');
+        }
+
+        await this.prisma.seguimientoUsuario
+            .create({
+                data: { idSeguidor: followerId, idSeguido: targetId }
+            })
+            .catch(() => {}); // si ya existe, lo ignora
+
+        return { ok: true };
+    }
+
+    async unfollow(followerId: string, targetId: string) {
+        await this.prisma.seguimientoUsuario.deleteMany({
+            where: { idSeguidor: followerId, idSeguido: targetId }
+        });
+        return { ok: true };
+    }
+
+    async getFollowers(userId: string) {
+        const seguidores = await this.prisma.seguimientoUsuario.findMany({
+            where: { idSeguido: userId },
+            include: { seguidor: true }
+        });
+        return seguidores.map((s) => this.toResponse(s.seguidor));
+    }
+
+    async getFollowing(userId: string) {
+        const seguidos = await this.prisma.seguimientoUsuario.findMany({
+            where: { idSeguidor: userId },
+            include: { seguido: true }
+        });
+        return seguidos.map((s) => this.toResponse(s.seguido));
+    }
+
+    async findProfile(id: string) {
+        const user = await this.prisma.usuario.findUnique({
+            where: { id },
+            include: {
+                publicaciones: true,
+                seguidores: true,
+                seguidos: true
+            }
+        });
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        return {
+            ...this.toResponse(user),
+            publicacionesCount: user.publicaciones.length,
+            seguidoresCount: user.seguidores.length,
+            seguidosCount: user.seguidos.length
+        };
+    }
 }
