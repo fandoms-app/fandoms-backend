@@ -1,4 +1,5 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prisma, Usuario } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
@@ -82,7 +83,11 @@ export class UsuarioService {
 
     async remove(id: string): Promise<void> {
         await this.findOne(id);
-        await this.prisma.usuario.delete({ where: { id } });
+        try {
+            await this.prisma.usuario.delete({ where: { id } });
+        } catch {
+            throw new ConflictException('No se pudo eliminar el usuario, puede tener datos relacionados');
+        }
     }
 
     async follow(followerId: string, targetId: string) {
@@ -90,19 +95,28 @@ export class UsuarioService {
             throw new ConflictException('No podés seguirte a vos mismo');
         }
 
-        await this.prisma.seguimientoUsuario
-            .create({
+        try {
+            await this.prisma.seguimientoUsuario.create({
                 data: { idSeguidor: followerId, idSeguido: targetId }
-            })
-            .catch(() => {}); // si ya existe, lo ignora
-
-        return { ok: true };
+            });
+            return { ok: true };
+        } catch (err) {
+            if (err instanceof PrismaClientKnownRequestError && err.code === 'P2002') {
+                throw new ConflictException('Ya seguís a este usuario');
+            }
+            throw new InternalServerErrorException('Error al seguir al usuario');
+        }
     }
 
     async unfollow(followerId: string, targetId: string) {
-        await this.prisma.seguimientoUsuario.deleteMany({
+        const result = await this.prisma.seguimientoUsuario.deleteMany({
             where: { idSeguidor: followerId, idSeguido: targetId }
         });
+
+        if (result.count === 0) {
+            throw new NotFoundException('No seguías a este usuario');
+        }
+
         return { ok: true };
     }
 

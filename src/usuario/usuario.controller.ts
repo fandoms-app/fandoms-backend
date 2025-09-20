@@ -76,4 +76,11 @@ export class UsuarioController {
     remove(@Param('id') id: string) {
         return this.usuarioService.remove(id);
     }
+
+    // perfil extendido (para ver publicaciones, seguidores, seguidos)
+    @UseGuards(JwtAuthGuard)
+    @Get(':id/profile')
+    getProfile(@Param('id') id: string) {
+        return this.usuarioService.findProfile(id);
+    }
 }

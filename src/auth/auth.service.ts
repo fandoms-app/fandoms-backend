@@ -17,7 +17,12 @@ export class AuthService {
 
     // registro
     async register(dto: CreateUsuarioDto) {
-        return this.usuarioService.create(dto);
+        const user = await this.usuarioService.create(dto);
+        const payload = { sub: user.id, email: user.email, rol: user.rol };
+        return {
+            accessToken: this.signAccessToken(payload),
+            refreshToken: this.signRefreshToken(payload)
+        };
     }
 
     // usado por localstrategy
