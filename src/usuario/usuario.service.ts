@@ -67,8 +67,8 @@ export class UsuarioService {
         const data: Prisma.UsuarioUpdateInput = {
             nombreUsuario: dto.nombreUsuario,
             email: dto.email,
-            avatar: dto.avatar,
-            bio: dto.bio,
+            avatar: dto.avatar === '' ? null : dto.avatar,
+            bio: dto.bio === '' ? null : dto.bio,
             fechaNacimiento: dto.fechaNacimiento ? new Date(dto.fechaNacimiento) : undefined,
             ...(passwordHash ? { passwordHash } : {})
         };
@@ -153,5 +153,17 @@ export class UsuarioService {
             seguidoresCount: user.seguidores.length,
             seguidosCount: user.seguidos.length
         };
+    }
+
+    async findByUsername(nombreUsuario: string): Promise<UsuarioResponseDto> {
+        const user = await this.prisma.usuario.findUnique({
+            where: { nombreUsuario }
+        });
+
+        if (!user) {
+            throw new NotFoundException('Usuario no encontrado');
+        }
+
+        return this.toResponse(user);
     }
 }

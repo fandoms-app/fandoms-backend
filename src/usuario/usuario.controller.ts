@@ -83,4 +83,11 @@ export class UsuarioController {
     getProfile(@Param('id') id: string) {
         return this.usuarioService.findProfile(id);
     }
+
+    // busca usuarios por nombre de usuario
+    @UseGuards(JwtAuthGuard)
+    @Get('search/:nombreUsuario')
+    searchByUsername(@Param('nombreUsuario') nombreUsuario: string) {
+        return this.usuarioService.findByUsername(nombreUsuario);
+    }
 }
