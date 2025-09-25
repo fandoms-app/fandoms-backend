@@ -155,15 +155,21 @@ export class UsuarioService {
         };
     }
 
-    async findByUsername(nombreUsuario: string): Promise<UsuarioResponseDto> {
-        const user = await this.prisma.usuario.findUnique({
-            where: { nombreUsuario }
-        });
-
-        if (!user) {
-            throw new NotFoundException('Usuario no encontrado');
+    async searchByUsername(query: string): Promise<UsuarioResponseDto[]> {
+        if (!query || query.trim().length < 2) {
+            return [];
         }
 
-        return this.toResponse(user);
+        const users = await this.prisma.usuario.findMany({
+            where: {
+                nombreUsuario: {
+                    contains: query,
+                    mode: 'insensitive'
+                }
+            },
+            take: 10
+        });
+
+        return users.map((user) => this.toResponse(user));
     }
 }

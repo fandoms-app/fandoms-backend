@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Param, Delete, UseGuards, Post } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Param, Delete, UseGuards, Post, Query } from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -28,6 +28,13 @@ export class UsuarioController {
     @Patch('me')
     updateMe(@User() user: JwtPayload, @Body() dto: UpdateUsuarioDto) {
         return this.usuarioService.update(user.sub, dto);
+    }
+
+    // busca usuarios por nombre de usuario (proximamente canales tambien)
+    @UseGuards(JwtAuthGuard)
+    @Get('search')
+    searchByUsername(@Query('q') query: string) {
+        return this.usuarioService.searchByUsername(query);
     }
 
     // devuelve un usuario por id
@@ -82,12 +89,5 @@ export class UsuarioController {
     @Get(':id/profile')
     getProfile(@Param('id') id: string) {
         return this.usuarioService.findProfile(id);
-    }
-
-    // busca usuarios por nombre de usuario
-    @UseGuards(JwtAuthGuard)
-    @Get('search/:nombreUsuario')
-    searchByUsername(@Param('nombreUsuario') nombreUsuario: string) {
-        return this.usuarioService.findByUsername(nombreUsuario);
     }
 }
