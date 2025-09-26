@@ -140,7 +140,7 @@ CREATE UNIQUE INDEX "Usuario_nombre_usuario_key" ON "public"."Usuario"("nombre_u
 CREATE UNIQUE INDEX "Usuario_email_key" ON "public"."Usuario"("email");
 
 -- AddForeignKey
-ALTER TABLE "public"."Canal" ADD CONSTRAINT "Canal_id_canal_padre_fkey" FOREIGN KEY ("id_canal_padre") REFERENCES "public"."Canal"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Canal" ADD CONSTRAINT "Canal_id_canal_padre_fkey" FOREIGN KEY ("id_canal_padre") REFERENCES "public"."Canal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."SolicitudCanal" ADD CONSTRAINT "SolicitudCanal_id_usuario_fkey" FOREIGN KEY ("id_usuario") REFERENCES "public"."Usuario"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
