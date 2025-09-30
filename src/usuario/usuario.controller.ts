@@ -30,11 +30,11 @@ export class UsuarioController {
         return this.usuarioService.update(user.sub, dto);
     }
 
-    // busca usuarios por nombre de usuario (proximamente canales tambien)
+    // busca usuarios y canales por nombre
     @UseGuards(JwtAuthGuard)
     @Get('search')
-    searchByUsername(@Query('q') query: string) {
-        return this.usuarioService.searchByUsername(query);
+    search(@Query('q') query: string) {
+        return this.usuarioService.search(query);
     }
 
     // devuelve un usuario por id

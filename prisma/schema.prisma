@@ -53,7 +53,7 @@ model Canal {
   fechaCreacion DateTime      @default(now()) @map("fecha_creacion")
   idCanalPadre  String?       @map("id_canal_padre")
 
-  canalPadre    Canal?        @relation("SubCanales", fields: [idCanalPadre], references: [id])
+  canalPadre    Canal?        @relation("SubCanales", fields: [idCanalPadre], references: [id], onDelete: Cascade)
   subCanales    Canal[]       @relation("SubCanales")
 
   publicaciones Publicacion[]

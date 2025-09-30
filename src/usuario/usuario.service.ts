@@ -6,6 +6,7 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as bcrypt from 'bcrypt';
 import { UsuarioResponseDto } from './dto/usuario-response.dto';
+import { OkResponseDto } from 'src/common/dto/ok-response.dto';
 
 @Injectable()
 export class UsuarioService {
@@ -90,7 +91,7 @@ export class UsuarioService {
         }
     }
 
-    async follow(followerId: string, targetId: string) {
+    async follow(followerId: string, targetId: string): Promise<OkResponseDto> {
         if (followerId === targetId) {
             throw new ConflictException('No podés seguirte a vos mismo');
         }
@@ -108,7 +109,7 @@ export class UsuarioService {
         }
     }
 
-    async unfollow(followerId: string, targetId: string) {
+    async unfollow(followerId: string, targetId: string): Promise<OkResponseDto> {
         const result = await this.prisma.seguimientoUsuario.deleteMany({
             where: { idSeguidor: followerId, idSeguido: targetId }
         });
@@ -155,7 +156,7 @@ export class UsuarioService {
         };
     }
 
-    async searchByUsername(query: string): Promise<UsuarioResponseDto[]> {
+    async search(query: string) {
         if (!query || query.trim().length < 2) {
             return [];
         }
@@ -167,9 +168,26 @@ export class UsuarioService {
                     mode: 'insensitive'
                 }
             },
-            take: 10
+            take: 5
         });
 
-        return users.map((user) => this.toResponse(user));
+        const canales = await this.prisma.canal.findMany({
+            where: {
+                nombreCanal: {
+                    contains: query,
+                    mode: 'insensitive'
+                }
+            },
+            take: 5
+        });
+
+        return {
+            usuarios: users.map((u) => this.toResponse(u)),
+            canales: canales.map((c) => ({
+                id: c.id,
+                nombreCanal: c.nombreCanal,
+                descripcion: c.descripcion
+            }))
+        };
     }
 }
