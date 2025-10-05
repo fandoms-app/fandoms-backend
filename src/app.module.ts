@@ -4,8 +4,16 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsuarioModule } from './usuario/usuario.module';
 import { AuthModule } from './auth/auth.module';
 import { CanalModule } from './canal/canal.module';
+import { PublicacionModule } from './publicacion/publicacion.module';
 
 @Module({
-    imports: [ConfigModule.forRoot({ isGlobal: true }), PrismaModule, AuthModule, UsuarioModule, CanalModule]
+    imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        PrismaModule,
+        AuthModule,
+        UsuarioModule,
+        CanalModule,
+        PublicacionModule
+    ]
 })
 export class AppModule {}
