@@ -1,4 +1,10 @@
-import { Injectable, ConflictException, NotFoundException, InternalServerErrorException } from '@nestjs/common';
+import {
+    Injectable,
+    ConflictException,
+    NotFoundException,
+    InternalServerErrorException,
+    BadRequestException
+} from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prisma, Usuario } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -7,10 +13,15 @@ import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as bcrypt from 'bcrypt';
 import { UsuarioResponseDto } from './dto/usuario-response.dto';
 import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { UploadApiResponse } from 'cloudinary';
 
 @Injectable()
 export class UsuarioService {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly cloudinaryService: CloudinaryService
+    ) {}
 
     private toResponse(user: Usuario): UsuarioResponseDto {
         const { passwordHash, ...safe } = user;
@@ -189,5 +200,18 @@ export class UsuarioService {
                 descripcion: c.descripcion
             }))
         };
+    }
+
+    async uploadAvatar(userId: string, file: Express.Multer.File): Promise<UsuarioResponseDto> {
+        if (!file) throw new BadRequestException('Debe subir una imagen válida');
+
+        const result: UploadApiResponse = await this.cloudinaryService.uploadImage(file, 'avatars');
+
+        const updatedUser = await this.prisma.usuario.update({
+            where: { id: userId },
+            data: { avatar: result.secure_url }
+        });
+
+        return this.toResponse(updatedUser);
     }
 }

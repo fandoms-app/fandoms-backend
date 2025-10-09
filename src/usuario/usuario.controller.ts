@@ -1,9 +1,22 @@
-import { Controller, Get, Body, Patch, Param, Delete, UseGuards, Post, Query } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Body,
+    Patch,
+    Param,
+    Delete,
+    UseGuards,
+    Post,
+    Query,
+    UseInterceptors,
+    UploadedFile
+} from '@nestjs/common';
 import { UsuarioService } from './usuario.service';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from 'src/auth/decorators/user-decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('usuario')
 export class UsuarioController {
@@ -21,6 +34,13 @@ export class UsuarioController {
     @Get('me')
     async getMe(@User() user: JwtPayload) {
         return this.usuarioService.findOne(user.sub);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Patch('me/avatar')
+    @UseInterceptors(FileInterceptor('file'))
+    async uploadAvatar(@User() user: JwtPayload, @UploadedFile() file: Express.Multer.File) {
+        return this.usuarioService.uploadAvatar(user.sub, file);
     }
 
     // actualiza el usuario logueado

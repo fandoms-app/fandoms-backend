@@ -5,6 +5,7 @@ import { UsuarioModule } from './usuario/usuario.module';
 import { AuthModule } from './auth/auth.module';
 import { CanalModule } from './canal/canal.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
     imports: [
@@ -13,7 +14,8 @@ import { PublicacionModule } from './publicacion/publicacion.module';
         AuthModule,
         UsuarioModule,
         CanalModule,
-        PublicacionModule
+        PublicacionModule,
+        CloudinaryModule
     ]
 })
 export class AppModule {}
