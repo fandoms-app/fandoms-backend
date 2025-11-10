@@ -18,7 +18,7 @@ import { User } from 'src/auth/decorators/user-decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller('usuario')
+@Controller('usuarios')
 export class UsuarioController {
     constructor(private readonly usuarioService: UsuarioService) {}
 

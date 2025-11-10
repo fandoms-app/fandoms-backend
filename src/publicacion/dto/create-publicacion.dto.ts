@@ -5,14 +5,14 @@ export class CreatePublicacionDto {
     @IsString()
     titulo?: string;
 
-    @IsNotEmpty()
+    @IsNotEmpty({ message: 'El contenido no puede estar vacío' })
     @IsString()
     contenido!: string;
 
-    @IsUUID()
+    @IsUUID('4', { message: 'El ID del canal debe ser un UUID válido' })
     idCanal!: string;
 
     @IsOptional()
-    @IsUUID()
+    @IsUUID('4', { message: 'El ID de la publicación padre debe ser un UUID válido' })
     idPublicacionPadre?: string | null;
 }

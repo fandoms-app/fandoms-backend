@@ -51,6 +51,7 @@ CREATE TABLE "public"."Publicacion" (
     "id" TEXT NOT NULL,
     "titulo" TEXT,
     "contenido" TEXT NOT NULL,
+    "media_url" TEXT,
     "fecha_creacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id_usuario" TEXT NOT NULL,
     "id_canal" TEXT NOT NULL,

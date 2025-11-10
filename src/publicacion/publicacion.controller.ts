@@ -1,20 +1,46 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import {
+    Body,
+    Controller,
+    Delete,
+    Get,
+    Param,
+    Patch,
+    Post,
+    UploadedFile,
+    UseGuards,
+    UseInterceptors
+} from '@nestjs/common';
 import { PublicacionService } from './publicacion.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../auth/decorators/user-decorator';
 import type { JwtPayload } from '../auth/types/jwt-payload';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('publicaciones')
 export class PublicacionController {
     constructor(private readonly publicacionService: PublicacionService) {}
 
-    // Crear publicación o comentario
+    // Crear publicacion
     @UseGuards(JwtAuthGuard)
     @Post()
-    create(@User() user: JwtPayload, @Body() dto: CreatePublicacionDto) {
-        return this.publicacionService.create(user.sub, dto);
+    @UseInterceptors(FileInterceptor('file'))
+    create(@User() user: JwtPayload, @UploadedFile() file: Express.Multer.File, @Body() dto: CreatePublicacionDto) {
+        return this.publicacionService.create(user.sub, dto, file);
+    }
+
+    // Responder a una publicacion
+    @UseGuards(JwtAuthGuard)
+    @Post(':id/responder')
+    @UseInterceptors(FileInterceptor('file'))
+    reply(
+        @User() user: JwtPayload,
+        @Param('id') idPadre: string,
+        @UploadedFile() file: Express.Multer.File,
+        @Body() dto: CreatePublicacionDto
+    ) {
+        return this.publicacionService.create(user.sub, { ...dto, idPublicacionPadre: idPadre }, file);
     }
 
     // Obtener todas las publicaciones de un canal
@@ -23,7 +49,7 @@ export class PublicacionController {
         return this.publicacionService.findByCanal(idCanal);
     }
 
-    // Obtener una publicación (con comentarios)
+    // Obtener una publicacion con comentarios
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.publicacionService.findOne(id);
@@ -36,7 +62,7 @@ export class PublicacionController {
         return this.publicacionService.update(user.sub, id, dto);
     }
 
-    // Eliminar una publicación propia
+    // Eliminar una publicacion propia
     @UseGuards(JwtAuthGuard)
     @Delete(':id')
     remove(@User() user: JwtPayload, @Param('id') id: string) {

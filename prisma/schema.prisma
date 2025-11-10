@@ -79,6 +79,7 @@ model Publicacion {
   id                  String         @id @default(uuid())
   titulo              String?
   contenido           String
+  mediaUrl            String?        @map("media_url")
   fechaCreacion       DateTime       @default(now()) @map("fecha_creacion")
   idUsuario           String         @map("id_usuario")
   idCanal             String         @map("id_canal")
