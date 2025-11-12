@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { CanalModule } from './canal/canal.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { APP_GUARD } from '@nestjs/core';
+import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
     imports: [
@@ -16,6 +18,12 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
         CanalModule,
         PublicacionModule,
         CloudinaryModule
+    ],
+    providers: [
+        {
+            provide: APP_GUARD,
+            useClass: RolesGuard
+        }
     ]
 })
 export class AppModule {}

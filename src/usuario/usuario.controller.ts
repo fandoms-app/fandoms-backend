@@ -17,26 +17,29 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from 'src/auth/decorators/user-decorator';
 import type { JwtPayload } from 'src/auth/types/jwt-payload';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from 'src/auth/decorators/roles-decorator';
+import { RolGlobal } from 'generated/prisma';
 
 @Controller('usuarios')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsuarioController {
     constructor(private readonly usuarioService: UsuarioService) {}
 
     // devuelve todos los usuarios
-    @UseGuards(JwtAuthGuard)
     @Get()
+    @Roles(RolGlobal.admin)
     findAll() {
         return this.usuarioService.findAll();
     }
 
     // devuelve el usuario logueado
-    @UseGuards(JwtAuthGuard)
     @Get('me')
     async getMe(@User() user: JwtPayload) {
         return this.usuarioService.findOne(user.sub);
     }
 
-    @UseGuards(JwtAuthGuard)
+    // sube el avatar del usuario logueado
     @Patch('me/avatar')
     @UseInterceptors(FileInterceptor('file'))
     async uploadAvatar(@User() user: JwtPayload, @UploadedFile() file: Express.Multer.File) {
@@ -44,42 +47,44 @@ export class UsuarioController {
     }
 
     // actualiza el usuario logueado
-    @UseGuards(JwtAuthGuard)
     @Patch('me')
     updateMe(@User() user: JwtPayload, @Body() dto: UpdateUsuarioDto) {
         return this.usuarioService.update(user.sub, dto);
     }
 
     // busca usuarios y canales por nombre
-    @UseGuards(JwtAuthGuard)
     @Get('search')
     search(@Query('q') query: string) {
         return this.usuarioService.search(query);
     }
 
     // devuelve un usuario por id
-    @UseGuards(JwtAuthGuard)
     @Get(':id')
     findOne(@Param('id') id: string) {
         return this.usuarioService.findOne(id);
     }
 
     // actualiza un usuario por id
-    @UseGuards(JwtAuthGuard)
     @Patch(':id')
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
     update(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
         return this.usuarioService.update(id, dto);
     }
 
+    // asignar rol a usuario (solo admin)
+    @Patch(':id/rol')
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
+    assignRole(@Param('id') id: string, @Body() body: { rol: RolGlobal }) {
+        return this.usuarioService.assignRole(id, body.rol);
+    }
+
     // sigue a un usuario por id
-    @UseGuards(JwtAuthGuard)
     @Post(':id/follow')
     follow(@User() user: JwtPayload, @Param('id') id: string) {
         return this.usuarioService.follow(user.sub, id);
     }
 
     // deja de seguir a un usuario por id
-    @UseGuards(JwtAuthGuard)
     @Delete(':id/follow')
     unfollow(@User() user: JwtPayload, @Param('id') id: string) {
         return this.usuarioService.unfollow(user.sub, id);
@@ -98,14 +103,13 @@ export class UsuarioController {
     }
 
     // elimina un usuario por id
-    @UseGuards(JwtAuthGuard)
     @Delete(':id')
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
     remove(@Param('id') id: string) {
         return this.usuarioService.remove(id);
     }
 
     // perfil extendido (para ver publicaciones, seguidores, seguidos)
-    @UseGuards(JwtAuthGuard)
     @Get(':id/profile')
     getProfile(@Param('id') id: string) {
         return this.usuarioService.findProfile(id);

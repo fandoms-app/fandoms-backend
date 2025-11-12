@@ -17,13 +17,14 @@ import type { JwtPayload } from '../auth/types/jwt-payload';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('publicaciones')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class PublicacionController {
     constructor(private readonly publicacionService: PublicacionService) {}
 
     // Crear publicacion
-    @UseGuards(JwtAuthGuard)
     @Post()
     @UseInterceptors(FileInterceptor('file'))
     create(@User() user: JwtPayload, @UploadedFile() file: Express.Multer.File, @Body() dto: CreatePublicacionDto) {
@@ -31,7 +32,6 @@ export class PublicacionController {
     }
 
     // Responder a una publicacion
-    @UseGuards(JwtAuthGuard)
     @Post(':id/responder')
     @UseInterceptors(FileInterceptor('file'))
     reply(
@@ -56,14 +56,12 @@ export class PublicacionController {
     }
 
     // Actualizar una publicación propia
-    @UseGuards(JwtAuthGuard)
     @Patch(':id')
     update(@User() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdatePublicacionDto) {
         return this.publicacionService.update(user.sub, id, dto);
     }
 
     // Eliminar una publicacion propia
-    @UseGuards(JwtAuthGuard)
     @Delete(':id')
     remove(@User() user: JwtPayload, @Param('id') id: string) {
         return this.publicacionService.remove(user.sub, id);

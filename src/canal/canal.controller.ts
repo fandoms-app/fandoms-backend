@@ -5,14 +5,18 @@ import { UpdateCanalDto } from './dto/update-canal.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../auth/decorators/user-decorator';
 import type { JwtPayload } from '../auth/types/jwt-payload';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { RolGlobal } from 'generated/prisma';
+import { Roles } from 'src/auth/decorators/roles-decorator';
 
 @Controller('canales')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CanalController {
     constructor(private readonly canalService: CanalService) {}
 
     //crear un canal
-    @UseGuards(JwtAuthGuard)
     @Post()
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
     create(@Body() dto: CreateCanalDto) {
         return this.canalService.create(dto);
     }
@@ -24,7 +28,6 @@ export class CanalController {
     }
 
     // devuelve los canales que sigue el usuario logueado
-    @UseGuards(JwtAuthGuard)
     @Get('me/seguidos')
     getMyFollowed(@User() user: JwtPayload) {
         return this.canalService.getFollowedChannels(user.sub);
@@ -43,28 +46,26 @@ export class CanalController {
     }
 
     // actualiza un canal por id
-    @UseGuards(JwtAuthGuard)
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
     @Patch(':id')
     update(@Param('id') id: string, @Body() dto: UpdateCanalDto) {
         return this.canalService.update(id, dto);
     }
 
     //elimina un canal por id
-    @UseGuards(JwtAuthGuard)
+    @Roles(RolGlobal.admin, RolGlobal.moderador)
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.canalService.remove(id);
     }
 
     //seguir un canal por id
-    @UseGuards(JwtAuthGuard)
     @Post(':id/follow')
     follow(@User() user: JwtPayload, @Param('id') id: string) {
         return this.canalService.follow(user.sub, id);
     }
 
     //dejar de seguir un canal por id
-    @UseGuards(JwtAuthGuard)
     @Delete(':id/follow')
     unfollow(@User() user: JwtPayload, @Param('id') id: string) {
         return this.canalService.unfollow(user.sub, id);

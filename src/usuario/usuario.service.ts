@@ -6,7 +6,7 @@ import {
     BadRequestException
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
-import { Prisma, Usuario } from '@prisma/client';
+import { Prisma, RolGlobal, Usuario } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
@@ -28,6 +28,18 @@ export class UsuarioService {
         return safe;
     }
 
+    async assignRole(id: string, rol: RolGlobal): Promise<UsuarioResponseDto> {
+        const user = await this.prisma.usuario.findUnique({ where: { id } });
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        const updated = await this.prisma.usuario.update({
+            where: { id },
+            data: { rol }
+        });
+
+        return this.toResponse(updated);
+    }
+
     async create(dto: CreateUsuarioDto): Promise<UsuarioResponseDto> {
         const exists = await this.prisma.usuario.findFirst({
             where: {
@@ -45,7 +57,8 @@ export class UsuarioService {
                 passwordHash,
                 avatar: dto.avatar,
                 bio: dto.bio,
-                fechaNacimiento: new Date(dto.fechaNacimiento)
+                fechaNacimiento: new Date(dto.fechaNacimiento),
+                rol: RolGlobal.usuario
             }
         });
 

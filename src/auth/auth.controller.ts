@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { RolGlobal } from 'generated/prisma';
 
 @Controller('auth')
 export class AuthController {
@@ -17,7 +18,7 @@ export class AuthController {
     // login con strategy local (email y password)
     @UseGuards(LocalAuthGuard)
     @Post('login')
-    login(@Request() req: { user: { id: string; email: string; rol: string } }) {
+    login(@Request() req: { user: { id: string; email: string; rol: RolGlobal } }) {
         const payload = { sub: req.user.id, email: req.user.email, rol: req.user.rol };
         return {
             accessToken: this.authService['signAccessToken'](payload),
