@@ -1,83 +1,31 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { UsuarioService } from '../usuario/usuario.service';
-import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
-import { LoginDto } from './dto/login.dto';
-import * as bcrypt from 'bcrypt';
-import { ConfigService } from '@nestjs/config';
-import { JwtPayload } from './types/jwt-payload';
+import { Injectable } from '@nestjs/common';
+import { UsuarioService } from 'src/usuario/usuario.service';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { CreateUsuarioDto } from 'src/usuario/dto/create-usuario.dto';
 
 @Injectable()
 export class AuthService {
-    constructor(
-        private readonly usuarioService: UsuarioService,
-        private readonly jwtService: JwtService,
-        private readonly config: ConfigService
-    ) {}
+    constructor(private readonly usuarioService: UsuarioService) {}
 
-    // registro
-    async register(dto: CreateUsuarioDto) {
-        const user = await this.usuarioService.create(dto);
-        const payload = { sub: user.id, email: user.email, rol: user.rol };
-        return {
-            accessToken: this.signAccessToken(payload),
-            refreshToken: this.signRefreshToken(payload)
-        };
-    }
-
-    // usado por localstrategy
-    async validateUser(email: string, password: string) {
-        const user = await this.usuarioService.findByEmail(email);
-        if (!user) return null;
-
-        const ok = await bcrypt.compare(password, user.passwordHash);
-        if (!ok) return null;
-
-        return {
-            id: user.id,
-            email: user.email,
-            nombreUsuario: user.nombreUsuario,
-            rol: user.rol
-        };
-    }
-
-    private signAccessToken(payload: JwtPayload) {
-        const expiresIn = this.config.get<string>('JWT_EXPIRES_IN') ?? '15m';
-        const secret = this.config.get<string>('JWT_SECRET') ?? 'default-access-secret';
-        return this.jwtService.sign(payload, { expiresIn, secret });
-    }
-
-    private signRefreshToken(payload: JwtPayload) {
-        const expiresIn = this.config.get<string>('REFRESH_JWT_EXPIRES_IN') ?? '7d';
-        const secret = this.config.get<string>('REFRESH_JWT_SECRET') ?? 'default-refresh-secret';
-        return this.jwtService.sign(payload, { expiresIn, secret });
-    }
-
-    async login(dto: LoginDto) {
-        const user = await this.usuarioService.findByEmail(dto.email);
-        if (!user) throw new UnauthorizedException('Credenciales inválidas');
-
-        const ok = await bcrypt.compare(dto.password, user.passwordHash);
-        if (!ok) throw new UnauthorizedException('Credenciales inválidas');
-
-        const payload = { sub: user.id, email: user.email, rol: user.rol };
-        return {
-            accessToken: this.signAccessToken(payload),
-            refreshToken: this.signRefreshToken(payload)
-        };
-    }
-
-    refresh(refreshToken: string) {
-        const secret = this.config.get<string>('REFRESH_JWT_SECRET') ?? 'default-refresh-secret';
-        try {
-            const decoded = this.jwtService.verify<JwtPayload>(refreshToken, { secret });
-            const payload: JwtPayload = { sub: decoded.sub, email: decoded.email, rol: decoded.rol };
-            return {
-                accessToken: this.signAccessToken(payload),
-                refreshToken: this.signRefreshToken(payload)
-            };
-        } catch {
-            throw new UnauthorizedException('Refresh token inválido o expirado');
+    async findOrCreateFromFirebase(decodedToken: DecodedIdToken) {
+        const email = decodedToken.email;
+        if (!email) {
+            throw new Error('El token de Firebase no contiene email');
         }
+
+        const existing = await this.usuarioService.findByEmail(email);
+        if (existing) return existing;
+
+        const dto: CreateUsuarioDto = {
+            email,
+            nombreUsuario: typeof decodedToken.name === 'string' ? decodedToken.name : email.split('@')[0],
+            password: 'firebase-auth-user',
+            fechaNacimiento: new Date().toISOString(),
+            avatar: typeof decodedToken.picture === 'string' ? decodedToken.picture : undefined,
+            bio: undefined
+        };
+
+        const nuevoUsuario = await this.usuarioService.create(dto);
+        return nuevoUsuario;
     }
 }

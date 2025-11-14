@@ -1,34 +1,20 @@
-import { Body, Controller, Post, Request, UseGuards } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { FirebaseAuthGuard } from '../auth/guards/firebase-auth.guard';
+import { User } from '../auth/decorators/user-decorator';
 import { AuthService } from './auth.service';
-import { LocalAuthGuard } from './guards/local-auth.guard';
-import { CreateUsuarioDto } from '../usuario/dto/create-usuario.dto';
-import { RefreshDto } from './dto/refresh.dto';
-import { RolGlobal } from 'generated/prisma';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 
 @Controller('auth')
 export class AuthController {
     constructor(private readonly authService: AuthService) {}
 
-    // registro
-    @Post('register')
-    register(@Body() dto: CreateUsuarioDto) {
-        return this.authService.register(dto);
-    }
-
-    // login con strategy local (email y password)
-    @UseGuards(LocalAuthGuard)
-    @Post('login')
-    login(@Request() req: { user: { id: string; email: string; rol: RolGlobal } }) {
-        const payload = { sub: req.user.id, email: req.user.email, rol: req.user.rol };
+    @UseGuards(FirebaseAuthGuard)
+    @Get('profile')
+    async getProfile(@User() firebaseUser: DecodedIdToken) {
+        const usuario = await this.authService.findOrCreateFromFirebase(firebaseUser);
         return {
-            accessToken: this.authService['signAccessToken'](payload),
-            refreshToken: this.authService['signRefreshToken'](payload)
+            message: 'Autenticado con Firebase',
+            usuario
         };
-    }
-
-    // refresh (intercambia refreshtoken por tokens nuevos)
-    @Post('refresh')
-    refresh(@Body() dto: RefreshDto) {
-        return this.authService.refresh(dto.refreshToken);
     }
 }

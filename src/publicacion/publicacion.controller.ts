@@ -11,23 +11,22 @@ import {
     UseInterceptors
 } from '@nestjs/common';
 import { PublicacionService } from './publicacion.service';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { User } from '../auth/decorators/user-decorator';
-import type { JwtPayload } from '../auth/types/jwt-payload';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { FirebaseAuthGuard } from 'src/auth/guards/firebase-auth.guard';
+import type { AuthUser } from 'src/auth/types/auth-user';
 
 @Controller('publicaciones')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(FirebaseAuthGuard)
 export class PublicacionController {
     constructor(private readonly publicacionService: PublicacionService) {}
 
     // Crear publicacion
     @Post()
     @UseInterceptors(FileInterceptor('file'))
-    create(@User() user: JwtPayload, @UploadedFile() file: Express.Multer.File, @Body() dto: CreatePublicacionDto) {
+    create(@User() user: AuthUser, @UploadedFile() file: Express.Multer.File, @Body() dto: CreatePublicacionDto) {
         return this.publicacionService.create(user.sub, dto, file);
     }
 
@@ -35,7 +34,7 @@ export class PublicacionController {
     @Post(':id/responder')
     @UseInterceptors(FileInterceptor('file'))
     reply(
-        @User() user: JwtPayload,
+        @User() user: AuthUser,
         @Param('id') idPadre: string,
         @UploadedFile() file: Express.Multer.File,
         @Body() dto: CreatePublicacionDto
@@ -57,13 +56,13 @@ export class PublicacionController {
 
     // Actualizar una publicación propia
     @Patch(':id')
-    update(@User() user: JwtPayload, @Param('id') id: string, @Body() dto: UpdatePublicacionDto) {
+    update(@User() user: AuthUser, @Param('id') id: string, @Body() dto: UpdatePublicacionDto) {
         return this.publicacionService.update(user.sub, id, dto);
     }
 
     // Eliminar una publicacion propia
     @Delete(':id')
-    remove(@User() user: JwtPayload, @Param('id') id: string) {
+    remove(@User() user: AuthUser, @Param('id') id: string) {
         return this.publicacionService.remove(user.sub, id);
     }
 }
