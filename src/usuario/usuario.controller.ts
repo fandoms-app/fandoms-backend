@@ -17,14 +17,18 @@ import { User } from 'src/auth/decorators/user-decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FirebaseAuthGuard } from 'src/auth/guards/firebase-auth.guard';
 import type { AuthUser } from 'src/auth/types/auth-user';
+import { RolesGuard } from 'src/auth/guards/roles-guard';
+import { Roles } from 'src/auth/decorators/rol-decorator';
+import { RolGlobal } from '@prisma/client';
 
 @Controller('usuarios')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, RolesGuard)
 export class UsuarioController {
     constructor(private readonly usuarioService: UsuarioService) {}
 
     // devuelve todos los usuarios
     @Get()
+    @Roles('moderador', 'admin')
     findAll() {
         return this.usuarioService.findAll();
     }
@@ -54,14 +58,23 @@ export class UsuarioController {
         return this.usuarioService.search(query);
     }
 
+    // asignar rol a un usuario
+    @Patch(':id/rol')
+    @Roles('admin', 'moderador')
+    assignRole(@Param('id') id: string, @Body('rol') rol: RolGlobal) {
+        return this.usuarioService.assignRole(id, rol);
+    }
+
     // devuelve un usuario por id
     @Get(':id')
+    @Roles('moderador', 'admin')
     findOne(@Param('id') id: string) {
         return this.usuarioService.findOne(id);
     }
 
     // actualiza un usuario por id
     @Patch(':id')
+    @Roles('moderador', 'admin')
     update(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
         return this.usuarioService.update(id, dto);
     }
@@ -92,6 +105,7 @@ export class UsuarioController {
 
     // elimina un usuario por id
     @Delete(':id')
+    @Roles('moderador', 'admin')
     remove(@Param('id') id: string) {
         return this.usuarioService.remove(id);
     }

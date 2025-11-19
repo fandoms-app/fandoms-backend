@@ -22,4 +22,8 @@ export class CreateUsuarioDto {
     @IsOptional()
     @IsString()
     bio?: string;
+
+    @IsOptional()
+    @IsString()
+    firebaseUid?: string;
 }

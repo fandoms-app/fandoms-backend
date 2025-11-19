@@ -22,7 +22,8 @@ export class AuthService {
             password: 'firebase-auth-user',
             fechaNacimiento: new Date().toISOString(),
             avatar: typeof decodedToken.picture === 'string' ? decodedToken.picture : undefined,
-            bio: undefined
+            bio: undefined,
+            firebaseUid: decodedToken.uid
         };
 
         const nuevoUsuario = await this.usuarioService.create(dto);

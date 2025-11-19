@@ -27,6 +27,7 @@ enum EstadoSolicitud {
 
 model Usuario {
   id              String          @id @default(uuid())
+  firebaseUid     String?         @unique @map("firebase_uid")
   nombreUsuario   String          @unique @map("nombre_usuario")
   email           String          @unique
   passwordHash    String          @map("password_hash")

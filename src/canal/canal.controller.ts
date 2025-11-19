@@ -5,14 +5,17 @@ import { UpdateCanalDto } from './dto/update-canal.dto';
 import { User } from '../auth/decorators/user-decorator';
 import { FirebaseAuthGuard } from 'src/auth/guards/firebase-auth.guard';
 import type { AuthUser } from 'src/auth/types/auth-user';
+import { RolesGuard } from 'src/auth/guards/roles-guard';
+import { Roles } from 'src/auth/decorators/rol-decorator';
 
 @Controller('canales')
-@UseGuards(FirebaseAuthGuard)
+@UseGuards(FirebaseAuthGuard, RolesGuard)
 export class CanalController {
     constructor(private readonly canalService: CanalService) {}
 
     //crear un canal
     @Post()
+    @Roles('moderador', 'admin')
     create(@Body() dto: CreateCanalDto) {
         return this.canalService.create(dto);
     }
@@ -43,12 +46,14 @@ export class CanalController {
 
     // actualiza un canal por id
     @Patch(':id')
+    @Roles('moderador', 'admin')
     update(@Param('id') id: string, @Body() dto: UpdateCanalDto) {
         return this.canalService.update(id, dto);
     }
 
     //elimina un canal por id
     @Delete(':id')
+    @Roles('moderador', 'admin')
     remove(@Param('id') id: string) {
         return this.canalService.remove(id);
     }

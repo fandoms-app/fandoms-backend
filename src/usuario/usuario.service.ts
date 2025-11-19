@@ -15,6 +15,7 @@ import { UsuarioResponseDto } from './dto/usuario-response.dto';
 import { OkResponseDto } from 'src/common/dto/ok-response.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
+import { admin } from 'src/firebase/firebase-admin.config';
 
 @Injectable()
 export class UsuarioService {
@@ -58,7 +59,8 @@ export class UsuarioService {
                 avatar: dto.avatar,
                 bio: dto.bio,
                 fechaNacimiento: new Date(dto.fechaNacimiento),
-                rol: RolGlobal.usuario
+                rol: RolGlobal.usuario,
+                firebaseUid: dto.firebaseUid ?? null
             }
         });
 
@@ -107,7 +109,21 @@ export class UsuarioService {
     }
 
     async remove(id: string): Promise<void> {
-        await this.findOne(id);
+        const user = await this.prisma.usuario.findUnique({ where: { id } });
+
+        if (!user) throw new NotFoundException('Usuario no encontrado');
+
+        // Si es usuario de Firebase → borrarlo allá primero
+        if (user.firebaseUid) {
+            try {
+                await admin.auth().deleteUser(user.firebaseUid);
+            } catch (err) {
+                console.error('Error eliminando usuario de Firebase:', err);
+                throw new InternalServerErrorException('No se pudo eliminar en Firebase');
+            }
+        }
+
+        // Eliminar de la base
         try {
             await this.prisma.usuario.delete({ where: { id } });
         } catch {

@@ -28,7 +28,8 @@ export class FirebaseAuthGuard implements CanActivate {
                 sub: usuarioDB.id,
                 email: usuarioDB.email,
                 nombreUsuario: usuarioDB.nombreUsuario,
-                avatar: usuarioDB.avatar ?? null
+                avatar: usuarioDB.avatar ?? null,
+                rol: usuarioDB.rol
             };
 
             req.user = authUser;
