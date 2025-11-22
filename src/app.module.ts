@@ -7,6 +7,7 @@ import { CanalModule } from './canal/canal.module';
 import { PublicacionModule } from './publicacion/publicacion.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { ReporteModule } from './reporte/reporte.module';
+import { SolicitudCanalModule } from './solicitudCanal/solicitudCanal.module';
 
 @Module({
     imports: [
@@ -17,7 +18,8 @@ import { ReporteModule } from './reporte/reporte.module';
         CanalModule,
         PublicacionModule,
         CloudinaryModule,
-        ReporteModule
+        ReporteModule,
+        SolicitudCanalModule
     ]
 })
 export class AppModule {}

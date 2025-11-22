@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, UseGuards, Patch } from '@nestjs/common';
 import { ReporteService } from './reporte.service';
 import { CreateReporteDto } from './dto/create-reporte.dto';
 import { User } from 'src/auth/decorators/user-decorator';
@@ -37,5 +37,19 @@ export class ReporteController {
     @Roles('moderador', 'admin')
     remove(@Param('id') id: string) {
         return this.reporteService.remove(id);
+    }
+
+    // Resolver reporte
+    @Patch(':id/resolver')
+    @Roles('moderador', 'admin')
+    resolver(@Param('id') id: string) {
+        return this.reporteService.resolver(id);
+    }
+
+    // Rechazar reporte
+    @Patch(':id/rechazar')
+    @Roles('moderador', 'admin')
+    rechazar(@Param('id') id: string) {
+        return this.reporteService.rechazar(id);
     }
 }

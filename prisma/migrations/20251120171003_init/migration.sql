@@ -2,14 +2,18 @@
 CREATE TYPE "public"."RolGlobal" AS ENUM ('admin', 'moderador', 'usuario');
 
 -- CreateEnum
-CREATE TYPE "public"."TipoReporte" AS ENUM ('usuario', 'canal', 'publicacion');
+CREATE TYPE "public"."TipoReporte" AS ENUM ('usuario', 'publicacion');
 
 -- CreateEnum
 CREATE TYPE "public"."EstadoSolicitud" AS ENUM ('pendiente', 'aprobada', 'rechazada');
 
+-- CreateEnum
+CREATE TYPE "public"."EstadoReporte" AS ENUM ('pendiente', 'resuelto', 'rechazado');
+
 -- CreateTable
 CREATE TABLE "public"."Usuario" (
     "id" TEXT NOT NULL,
+    "firebase_uid" TEXT,
     "nombre_usuario" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password_hash" TEXT NOT NULL,
@@ -50,12 +54,13 @@ CREATE TABLE "public"."SolicitudCanal" (
 CREATE TABLE "public"."Publicacion" (
     "id" TEXT NOT NULL,
     "titulo" TEXT,
-    "contenido" TEXT NOT NULL,
+    "contenido" TEXT,
     "media_url" TEXT,
     "fecha_creacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id_usuario" TEXT NOT NULL,
     "id_canal" TEXT NOT NULL,
     "id_publicacion_padre" TEXT,
+    "eliminada" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Publicacion_pkey" PRIMARY KEY ("id")
 );
@@ -130,9 +135,13 @@ CREATE TABLE "public"."Reporte" (
     "fecha_creacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id_usuario_reporta" TEXT NOT NULL,
     "id_objetivo" TEXT NOT NULL,
+    "estado" "public"."EstadoReporte" NOT NULL DEFAULT 'pendiente',
 
     CONSTRAINT "Reporte_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Usuario_firebase_uid_key" ON "public"."Usuario"("firebase_uid");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Usuario_nombre_usuario_key" ON "public"."Usuario"("nombre_usuario");

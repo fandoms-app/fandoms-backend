@@ -51,6 +51,29 @@ export class CanalService {
         return this.toResponse(canal);
     }
 
+    async createFromRequest(nombre: string, descripcion?: string | null, idCanalPadre?: string | null) {
+        if (idCanalPadre) {
+            const padre = await this.prisma.canal.findUnique({
+                where: { id: idCanalPadre }
+            });
+            if (!padre) throw new NotFoundException('Canal padre no encontrado');
+            if (padre.idCanalPadre) {
+                throw new ConflictException('Solo se pueden crear subcanales en canales raíz');
+            }
+        }
+
+        const canal = await this.prisma.canal.create({
+            data: {
+                nombreCanal: nombre,
+                descripcion: descripcion ?? null,
+                idCanalPadre: idCanalPadre ?? null
+            },
+            include: { _count: { select: { seguidores: true } } }
+        });
+
+        return this.toResponse(canal);
+    }
+
     async findAll(): Promise<CanalResponseDto[]> {
         const canales = await this.prisma.canal.findMany({
             include: { _count: { select: { seguidores: true } } }

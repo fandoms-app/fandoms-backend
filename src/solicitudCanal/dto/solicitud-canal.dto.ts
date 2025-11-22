@@ -11,5 +11,5 @@ export class SolicitudCanalDto {
 
     @IsOptional()
     @IsString()
-    idCanalPadre?: string;
+    idCanalPadre?: string | null;
 }

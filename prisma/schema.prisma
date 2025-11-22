@@ -15,7 +15,6 @@ enum RolGlobal {
 
 enum TipoReporte {
   usuario
-  canal
   publicacion
 }
 
@@ -23,6 +22,12 @@ enum EstadoSolicitud {
   pendiente
   aprobada
   rechazada
+}
+
+enum EstadoReporte {
+  pendiente
+  resuelto
+  rechazado
 }
 
 model Usuario {
@@ -79,12 +84,13 @@ model SolicitudCanal {
 model Publicacion {
   id                  String         @id @default(uuid())
   titulo              String?
-  contenido           String
+  contenido           String?
   mediaUrl            String?        @map("media_url")
   fechaCreacion       DateTime       @default(now()) @map("fecha_creacion")
   idUsuario           String         @map("id_usuario")
   idCanal             String         @map("id_canal")
   idPublicacionPadre  String?        @map("id_publicacion_padre")
+  eliminada           Boolean        @default(false)
 
   usuario             Usuario        @relation(fields: [idUsuario], references: [id])
   canal               Canal          @relation(fields: [idCanal], references: [id])
@@ -171,6 +177,8 @@ model Reporte {
   fechaCreacion    DateTime       @default(now()) @map("fecha_creacion")
   idUsuarioReporta String         @map("id_usuario_reporta")
   idObjetivo       String         @map("id_objetivo")
+  estado           EstadoReporte  @default(pendiente)
+
 
   usuarioReporta   Usuario        @relation("ReportesHechos", fields: [idUsuarioReporta], references: [id])
 }

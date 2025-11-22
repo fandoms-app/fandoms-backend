@@ -51,7 +51,8 @@ export class PublicacionService {
             nombreUsuario: pub.usuario?.nombreUsuario,
             avatarUsuario: pub.usuario?.avatar ?? null,
             comentarios,
-            comentariosCount
+            comentariosCount,
+            eliminada: pub.eliminada
         };
     }
 
@@ -151,8 +152,25 @@ export class PublicacionService {
     async remove(idUsuario: string, id: string): Promise<void> {
         const pub = await this.prisma.publicacion.findUnique({ where: { id } });
         if (!pub) throw new NotFoundException('Publicación no encontrada');
-        if (pub.idUsuario !== idUsuario) throw new ForbiddenException('No puedes eliminar esta publicación');
 
-        await this.prisma.publicacion.delete({ where: { id } });
+        const usuario = await this.prisma.usuario.findUnique({
+            where: { id: idUsuario },
+            select: { rol: true }
+        });
+        const esStaff = usuario?.rol === 'admin' || usuario?.rol === 'moderador';
+
+        if (!esStaff && pub.idUsuario !== idUsuario) {
+            throw new ForbiddenException('No puedes eliminar esta publicación');
+        }
+
+        await this.prisma.publicacion.update({
+            where: { id },
+            data: {
+                eliminada: true,
+                contenido: null,
+                titulo: null,
+                mediaUrl: null
+            }
+        });
     }
 }
