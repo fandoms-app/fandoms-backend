@@ -26,7 +26,8 @@ export class SolicitudCanalService {
         return this.prisma.solicitudCanal.findMany({
             orderBy: { fechaSolicitud: 'desc' },
             include: {
-                usuario: { select: { id: true, nombreUsuario: true } }
+                usuario: { select: { id: true, nombreUsuario: true } },
+                canalPadre: { select: { id: true, nombreCanal: true } }
             }
         });
     }

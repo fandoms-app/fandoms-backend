@@ -2,7 +2,7 @@
 CREATE TYPE "public"."RolGlobal" AS ENUM ('admin', 'moderador', 'usuario');
 
 -- CreateEnum
-CREATE TYPE "public"."TipoReporte" AS ENUM ('usuario', 'publicacion');
+CREATE TYPE "public"."TipoReporte" AS ENUM ('usuario', 'publicacion', 'canal');
 
 -- CreateEnum
 CREATE TYPE "public"."EstadoSolicitud" AS ENUM ('pendiente', 'aprobada', 'rechazada');
@@ -33,6 +33,7 @@ CREATE TABLE "public"."Canal" (
     "descripcion" TEXT,
     "fecha_creacion" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "id_canal_padre" TEXT,
+    "eliminado" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "Canal_pkey" PRIMARY KEY ("id")
 );

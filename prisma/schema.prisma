@@ -16,6 +16,7 @@ enum RolGlobal {
 enum TipoReporte {
   usuario
   publicacion
+  canal
 }
 
 enum EstadoSolicitud {
@@ -58,6 +59,7 @@ model Canal {
   descripcion   String?
   fechaCreacion DateTime      @default(now()) @map("fecha_creacion")
   idCanalPadre  String?       @map("id_canal_padre")
+  eliminado     Boolean       @default(false)
 
   canalPadre    Canal?        @relation("SubCanales", fields: [idCanalPadre], references: [id], onDelete: Cascade)
   subCanales    Canal[]       @relation("SubCanales")

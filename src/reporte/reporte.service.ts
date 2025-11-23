@@ -22,6 +22,13 @@ export class ReporteService {
             if (!pub) throw new NotFoundException('La publicación reportada no existe');
         }
 
+        if (dto.tipo === TipoReporte.canal) {
+            const canal = await this.prisma.canal.findUnique({
+                where: { id: dto.idObjetivo }
+            });
+            if (!canal) throw new NotFoundException('El canal reportado no existe');
+        }
+
         return this.prisma.reporte.create({
             data: {
                 tipo: dto.tipo,
