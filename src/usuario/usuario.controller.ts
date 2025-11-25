@@ -61,8 +61,8 @@ export class UsuarioController {
     // asignar rol a un usuario
     @Patch(':id/rol')
     @Roles('admin', 'moderador')
-    assignRole(@Param('id') id: string, @Body('rol') rol: RolGlobal) {
-        return this.usuarioService.assignRole(id, rol);
+    assignRole(@User() user: AuthUser, @Param('id') id: string, @Body('rol') rol: RolGlobal) {
+        return this.usuarioService.assignRole(id, rol, user.sub);
     }
 
     // devuelve un usuario por id

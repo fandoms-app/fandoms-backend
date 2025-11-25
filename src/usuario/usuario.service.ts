@@ -3,7 +3,8 @@ import {
     ConflictException,
     NotFoundException,
     InternalServerErrorException,
-    BadRequestException
+    BadRequestException,
+    ForbiddenException
 } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { Prisma, RolGlobal, Usuario } from '@prisma/client';
@@ -17,6 +18,11 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 import { admin } from 'src/firebase/firebase-admin.config';
 
+function parseFechaNacimiento(dateString: string): Date {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+}
+
 @Injectable()
 export class UsuarioService {
     constructor(
@@ -29,9 +35,24 @@ export class UsuarioService {
         return safe;
     }
 
-    async assignRole(id: string, rol: RolGlobal): Promise<UsuarioResponseDto> {
-        const user = await this.prisma.usuario.findUnique({ where: { id } });
-        if (!user) throw new NotFoundException('Usuario no encontrado');
+    async assignRole(id: string, rol: RolGlobal, requesterId: string): Promise<UsuarioResponseDto> {
+        const requester = await this.prisma.usuario.findUnique({ where: { id: requesterId } });
+        if (!requester) throw new NotFoundException('Usuario solicitante no encontrado');
+
+        const target = await this.prisma.usuario.findUnique({ where: { id } });
+        if (!target) throw new NotFoundException('Usuario objetivo no encontrado');
+
+        if (requesterId === id) {
+            throw new ForbiddenException('No podés cambiar tu propio rol');
+        }
+
+        if (requester.rol === 'moderador' && target.rol === 'admin') {
+            throw new ForbiddenException('No podés modificar el rol de un admin');
+        }
+
+        if (requester.rol === 'moderador' && rol === 'admin') {
+            throw new ForbiddenException('Los moderadores no pueden asignar admin');
+        }
 
         const updated = await this.prisma.usuario.update({
             where: { id },
@@ -58,7 +79,7 @@ export class UsuarioService {
                 passwordHash,
                 avatar: dto.avatar,
                 bio: dto.bio,
-                fechaNacimiento: new Date(dto.fechaNacimiento),
+                fechaNacimiento: parseFechaNacimiento(dto.fechaNacimiento),
                 rol: RolGlobal.usuario,
                 firebaseUid: dto.firebaseUid ?? null
             }
@@ -79,7 +100,6 @@ export class UsuarioService {
     }
 
     async findByEmail(email: string): Promise<Usuario | null> {
-        // aca devuelve el modelo completo porque lo necesita authservice para comparar el passwordhash
         return this.prisma.usuario.findUnique({ where: { email } });
     }
 
@@ -96,7 +116,7 @@ export class UsuarioService {
             email: dto.email,
             avatar: dto.avatar === '' ? null : dto.avatar,
             bio: dto.bio === '' ? null : dto.bio,
-            fechaNacimiento: dto.fechaNacimiento ? new Date(dto.fechaNacimiento) : undefined,
+            fechaNacimiento: dto.fechaNacimiento ? parseFechaNacimiento(dto.fechaNacimiento) : undefined,
             ...(passwordHash ? { passwordHash } : {})
         };
 
@@ -113,7 +133,6 @@ export class UsuarioService {
 
         if (!user) throw new NotFoundException('Usuario no encontrado');
 
-        // Si es usuario de Firebase → borrarlo allá primero
         if (user.firebaseUid) {
             try {
                 await admin.auth().deleteUser(user.firebaseUid);
@@ -123,7 +142,6 @@ export class UsuarioService {
             }
         }
 
-        // Eliminar de la base
         try {
             await this.prisma.usuario.delete({ where: { id } });
         } catch {
