@@ -1,4 +1,4 @@
-export class PublicacionResponseDto {
+export class PublicacionResponse {
     id!: string;
     titulo?: string | null;
     contenido!: string | null;
@@ -7,7 +7,7 @@ export class PublicacionResponseDto {
     idUsuario!: string;
     idCanal!: string;
     idPublicacionPadre?: string | null;
-    comentarios?: PublicacionResponseDto[];
+    comentarios?: PublicacionResponse[];
     nombreUsuario?: string | null;
     avatarUsuario?: string | null;
     comentariosCount?: number;

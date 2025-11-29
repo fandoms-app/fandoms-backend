@@ -12,8 +12,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import * as bcrypt from 'bcrypt';
-import { UsuarioResponseDto } from './dto/usuario-response.dto';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { UsuarioResponse } from './dto/usuario-response.';
+import { OkResponse } from 'src/common/ok-response.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UploadApiResponse } from 'cloudinary';
 import { admin } from 'src/firebase/firebase-admin.config';
@@ -30,12 +30,12 @@ export class UsuarioService {
         private readonly cloudinaryService: CloudinaryService
     ) {}
 
-    private toResponse(user: Usuario): UsuarioResponseDto {
+    private toResponse(user: Usuario): UsuarioResponse {
         const { passwordHash, ...safe } = user;
         return safe;
     }
 
-    async assignRole(id: string, rol: RolGlobal, requesterId: string): Promise<UsuarioResponseDto> {
+    async assignRole(id: string, rol: RolGlobal, requesterId: string): Promise<UsuarioResponse> {
         const requester = await this.prisma.usuario.findUnique({ where: { id: requesterId } });
         if (!requester) throw new NotFoundException('Usuario solicitante no encontrado');
 
@@ -62,7 +62,7 @@ export class UsuarioService {
         return this.toResponse(updated);
     }
 
-    async create(dto: CreateUsuarioDto): Promise<UsuarioResponseDto> {
+    async create(dto: CreateUsuarioDto): Promise<UsuarioResponse> {
         const exists = await this.prisma.usuario.findFirst({
             where: {
                 OR: [{ email: dto.email }, { nombreUsuario: dto.nombreUsuario }]
@@ -88,12 +88,12 @@ export class UsuarioService {
         return this.toResponse(user);
     }
 
-    async findAll(): Promise<UsuarioResponseDto[]> {
+    async findAll(): Promise<UsuarioResponse[]> {
         const users = await this.prisma.usuario.findMany();
         return users.map((u) => this.toResponse(u));
     }
 
-    async findOne(id: string): Promise<UsuarioResponseDto> {
+    async findOne(id: string): Promise<UsuarioResponse> {
         const user = await this.prisma.usuario.findUnique({ where: { id } });
         if (!user) throw new NotFoundException('Usuario no encontrado');
         return this.toResponse(user);
@@ -103,7 +103,7 @@ export class UsuarioService {
         return this.prisma.usuario.findUnique({ where: { email } });
     }
 
-    async update(id: string, dto: UpdateUsuarioDto): Promise<UsuarioResponseDto> {
+    async update(id: string, dto: UpdateUsuarioDto): Promise<UsuarioResponse> {
         await this.findOne(id);
 
         let passwordHash: string | undefined;
@@ -149,7 +149,7 @@ export class UsuarioService {
         }
     }
 
-    async follow(followerId: string, targetId: string): Promise<OkResponseDto> {
+    async follow(followerId: string, targetId: string): Promise<OkResponse> {
         if (followerId === targetId) {
             throw new ConflictException('No podés seguirte a vos mismo');
         }
@@ -167,7 +167,7 @@ export class UsuarioService {
         }
     }
 
-    async unfollow(followerId: string, targetId: string): Promise<OkResponseDto> {
+    async unfollow(followerId: string, targetId: string): Promise<OkResponse> {
         const result = await this.prisma.seguimientoUsuario.deleteMany({
             where: { idSeguidor: followerId, idSeguido: targetId }
         });
@@ -249,7 +249,7 @@ export class UsuarioService {
         };
     }
 
-    async uploadAvatar(userId: string, file: Express.Multer.File): Promise<UsuarioResponseDto> {
+    async uploadAvatar(userId: string, file: Express.Multer.File): Promise<UsuarioResponse> {
         if (!file) throw new BadRequestException('Debe subir una imagen válida');
 
         const result: UploadApiResponse = await this.cloudinaryService.uploadImage(file, 'avatars');

@@ -4,7 +4,7 @@ import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { Prisma } from '@prisma/client';
 import { CreatePublicacionDto } from './dto/create-publicacion.dto';
 import { UpdatePublicacionDto } from './dto/update-publicacion.dto';
-import { PublicacionResponseDto } from './dto/publicacion-response.dto';
+import { PublicacionResponse } from './dto/publicacion-response';
 
 type PublicacionBase = Prisma.PublicacionGetPayload<{
     include: { usuario: { select: { nombreUsuario: true; avatar: true } } };
@@ -31,7 +31,7 @@ export class PublicacionService {
         pub: (PublicacionConComentariosYUsuario | PublicacionBase) & {
             _count?: { comentarios: number } | null;
         }
-    ): PublicacionResponseDto {
+    ): PublicacionResponse {
         const tieneComentarios = 'comentarios' in pub && Array.isArray(pub.comentarios);
 
         const comentarios = tieneComentarios ? pub.comentarios.map((c) => this.toResponse(c)) : [];
@@ -60,7 +60,7 @@ export class PublicacionService {
         idUsuario: string,
         dto: CreatePublicacionDto,
         file?: Express.Multer.File
-    ): Promise<PublicacionResponseDto> {
+    ): Promise<PublicacionResponse> {
         let mediaUrl: string | null = null;
 
         if (file) {
@@ -90,7 +90,7 @@ export class PublicacionService {
         return this.toResponse(pub);
     }
 
-    async findByCanal(idCanal: string): Promise<PublicacionResponseDto[]> {
+    async findByCanal(idCanal: string): Promise<PublicacionResponse[]> {
         const pubs = await this.prisma.publicacion.findMany({
             where: {
                 idCanal,
@@ -106,7 +106,7 @@ export class PublicacionService {
         return pubs.map((p) => this.toResponse({ ...p, comentarios: [] }));
     }
 
-    async findOne(id: string): Promise<PublicacionResponseDto> {
+    async findOne(id: string): Promise<PublicacionResponse> {
         const pub = await this.prisma.publicacion.findUnique({
             where: { id },
             include: {
@@ -126,7 +126,7 @@ export class PublicacionService {
         return this.toResponse(pub);
     }
 
-    async update(idUsuario: string, id: string, dto: UpdatePublicacionDto): Promise<PublicacionResponseDto> {
+    async update(idUsuario: string, id: string, dto: UpdatePublicacionDto): Promise<PublicacionResponse> {
         const pub = await this.prisma.publicacion.findUnique({ where: { id } });
         if (!pub) throw new NotFoundException('Publicación no encontrada');
         if (pub.idUsuario !== idUsuario) throw new ForbiddenException('No puedes editar esta publicación');

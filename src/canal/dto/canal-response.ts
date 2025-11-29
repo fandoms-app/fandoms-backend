@@ -1,4 +1,4 @@
-export class CanalResponseDto {
+export class CanalResponse {
     id!: string;
     nombreCanal!: string;
     descripcion?: string | null;

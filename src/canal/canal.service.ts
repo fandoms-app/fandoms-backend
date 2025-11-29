@@ -2,16 +2,16 @@ import { ConflictException, Injectable, InternalServerErrorException, NotFoundEx
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCanalDto } from './dto/create-canal.dto';
 import { UpdateCanalDto } from './dto/update-canal.dto';
-import { CanalResponseDto } from './dto/canal-response.dto';
-import { UsuarioResponseDto } from '../usuario/dto/usuario-response.dto';
+import { CanalResponse } from './dto/canal-response';
+import { UsuarioResponse } from '../usuario/dto/usuario-response.';
 import { Canal, Prisma, Usuario } from '@prisma/client';
-import { OkResponseDto } from 'src/common/dto/ok-response.dto';
+import { OkResponse } from 'src/common/ok-response.dto';
 
 @Injectable()
 export class CanalService {
     constructor(private readonly prisma: PrismaService) {}
 
-    private toResponse(canal: Canal & { _count?: { seguidores: number } }): CanalResponseDto {
+    private toResponse(canal: Canal & { _count?: { seguidores: number } }): CanalResponse {
         return {
             id: canal.id,
             nombreCanal: canal.nombreCanal,
@@ -22,12 +22,12 @@ export class CanalService {
         };
     }
 
-    private toUsuarioResponse(user: Usuario): UsuarioResponseDto {
+    private toUsuarioResponse(user: Usuario): UsuarioResponse {
         const { passwordHash, ...safe } = user;
         return safe;
     }
 
-    async create(dto: CreateCanalDto): Promise<CanalResponseDto> {
+    async create(dto: CreateCanalDto): Promise<CanalResponse> {
         if (dto.idCanalPadre) {
             const padre = await this.prisma.canal.findUnique({
                 where: { id: dto.idCanalPadre }
@@ -74,14 +74,14 @@ export class CanalService {
         return this.toResponse(canal);
     }
 
-    async findAll(): Promise<CanalResponseDto[]> {
+    async findAll(): Promise<CanalResponse[]> {
         const canales = await this.prisma.canal.findMany({
             include: { _count: { select: { seguidores: true } } }
         });
         return canales.map((c) => this.toResponse(c));
     }
 
-    async findOne(id: string): Promise<CanalResponseDto> {
+    async findOne(id: string): Promise<CanalResponse> {
         const canal = await this.prisma.canal.findUnique({
             where: { id },
             include: { _count: { select: { seguidores: true } } }
@@ -90,7 +90,7 @@ export class CanalService {
         return this.toResponse(canal);
     }
 
-    async update(id: string, dto: UpdateCanalDto): Promise<CanalResponseDto> {
+    async update(id: string, dto: UpdateCanalDto): Promise<CanalResponse> {
         await this.findOne(id);
 
         const canal = await this.prisma.canal.update({
@@ -102,7 +102,7 @@ export class CanalService {
         return this.toResponse(canal);
     }
 
-    async remove(id: string): Promise<CanalResponseDto> {
+    async remove(id: string): Promise<CanalResponse> {
         await this.findOne(id);
         const canal = await this.prisma.canal.delete({
             where: { id },
@@ -111,7 +111,7 @@ export class CanalService {
         return this.toResponse(canal);
     }
 
-    async follow(userId: string, canalId: string): Promise<OkResponseDto> {
+    async follow(userId: string, canalId: string): Promise<OkResponse> {
         const canal = await this.prisma.canal.findUnique({ where: { id: canalId } });
         if (!canal) throw new NotFoundException('Canal no encontrado');
 
@@ -128,7 +128,7 @@ export class CanalService {
         }
     }
 
-    async unfollow(userId: string, canalId: string): Promise<OkResponseDto> {
+    async unfollow(userId: string, canalId: string): Promise<OkResponse> {
         const canal = await this.prisma.canal.findUnique({ where: { id: canalId } });
         if (!canal) throw new NotFoundException('Canal no encontrado');
 
@@ -143,7 +143,7 @@ export class CanalService {
         return { ok: true };
     }
 
-    async getFollowers(canalId: string): Promise<UsuarioResponseDto[]> {
+    async getFollowers(canalId: string): Promise<UsuarioResponse[]> {
         const seguidores = await this.prisma.seguimientoCanal.findMany({
             where: { idCanal: canalId },
             include: { usuario: true }
@@ -152,7 +152,7 @@ export class CanalService {
         return seguidores.map((s) => this.toUsuarioResponse(s.usuario));
     }
 
-    async getFollowedChannels(userId: string): Promise<CanalResponseDto[]> {
+    async getFollowedChannels(userId: string): Promise<CanalResponse[]> {
         const seguidos = await this.prisma.seguimientoCanal.findMany({
             where: { idUsuario: userId },
             include: {
@@ -163,7 +163,7 @@ export class CanalService {
         return seguidos.map((s) => this.toResponse(s.canal));
     }
 
-    async getSubCanales(id: string): Promise<CanalResponseDto[]> {
+    async getSubCanales(id: string): Promise<CanalResponse[]> {
         const subcanales = await this.prisma.canal.findMany({
             where: { idCanalPadre: id },
             include: { _count: { select: { seguidores: true } } }
@@ -171,7 +171,7 @@ export class CanalService {
         return subcanales.map((c) => this.toResponse(c));
     }
 
-    async findRoot(): Promise<CanalResponseDto[]> {
+    async findRoot(): Promise<CanalResponse[]> {
         const canales = await this.prisma.canal.findMany({
             where: { idCanalPadre: null },
             include: { _count: { select: { seguidores: true } } }

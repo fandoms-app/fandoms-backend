@@ -1,6 +1,6 @@
 import { RolGlobal } from '@prisma/client';
 
-export class UsuarioResponseDto {
+export class UsuarioResponse {
     id!: string;
     nombreUsuario!: string;
     email!: string;
