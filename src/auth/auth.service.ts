@@ -20,7 +20,7 @@ export class AuthService {
             email,
             nombreUsuario: typeof decodedToken.name === 'string' ? decodedToken.name : email.split('@')[0],
             password: 'firebase-auth-user',
-            fechaNacimiento: new Date().toISOString(),
+            fechaNacimiento: new Date().toISOString().split('T')[0],
             avatar: typeof decodedToken.picture === 'string' ? decodedToken.picture : undefined,
             bio: undefined,
             firebaseUid: decodedToken.uid
