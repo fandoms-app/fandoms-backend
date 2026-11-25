@@ -93,9 +93,38 @@ No compartir el archivo `.env` ni subirlo al repositorio.
 
 El proyecto utiliza PostgreSQL 16 mediante Docker Compose. La configuración se encuentra en la carpeta independiente `fandoms-db`.
 
-### 1. Configurar Docker
+### 1. Configurar Docker Compose
 
-Dentro de `fandoms-db`, crear un archivo `.env` con las siguientes variables:
+Dentro de `fandoms-db`, crear un archivo llamado `docker-compose.yml` con la siguiente configuración:
+
+```yaml
+services:
+  db:
+    image: ${image}
+    container_name: fandomsDB
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - TZ=${TZ}
+    ports:
+      - "${postgres_port}:5432"
+    volumes:
+      - .data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: fandoms-net
+```
+
+### 2. Configurar las variables de entorno
+
+En la misma carpeta, crear un archivo `.env`:
 
 ```env
 image=postgres:16
@@ -106,7 +135,9 @@ POSTGRES_PASSWORD=postgres
 TZ=America/Argentina/Buenos_Aires
 ```
 
-### 2. Levantar el contenedor
+Estos valores corresponden a la configuración de desarrollo local. La contraseña indicada es un ejemplo y debe reemplazarse si se utiliza una configuración diferente.
+
+### 3. Levantar el contenedor
 
 Desde la carpeta principal `Fandoms App`, ejecutar:
 
@@ -115,12 +146,12 @@ cd fandoms-db
 docker compose up -d
 ```
 
-Docker Compose utilizará `docker-compose.yml` para crear el contenedor `fandomsDB` y conectarlo a la red `fandoms-net`.
+Docker Compose utilizará los archivos `docker-compose.yml` y `.env` para crear e iniciar el contenedor `fandomsDB`, conectado a la red `fandoms-net`.
 
-Para verificar que el contenedor esté funcionando:
+Para comprobar el estado del contenedor:
 
 ```bash
-docker ps
+docker compose ps
 ```
 
 Una vez iniciada la base de datos, volver a la carpeta del backend:
